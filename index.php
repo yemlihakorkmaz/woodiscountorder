@@ -3,15 +3,30 @@
 /**
  * Plugin Name: Toplu İndirim Alanı Oluştur - YEMLİHA
  * Plugin URI: https://www.yemlihakorkmaz.com/
- * Description: This is the very first plugin I ever created.
+ * Description: Ürünleri indirim oranına göre sıralamaya yarayan eklenti
  * Version: 1.0
- * Author: Your Name Here
+ * Author: yemlihakorkmaz
  * Author URI: http://yemlihakorkmaz.com.com/
  **/
+//Eklenti menüsü
 
-add_filter('woocommerce_catalog_orderby', 'misha_add_custom_sorting_options');
 
-function misha_add_custom_sorting_options($options)
+function my_admin_menu()
+{
+    add_menu_page(
+        __('Toplu İndirim Oranı Oluştur', 'my-textdomain'),
+        __('Toplu İndirim Oranı Oluştur', 'my-textdomain'),
+        'manage_options',
+        'sample-page',
+        'my_admin_page_contents',
+        'dashicons-schedule',
+        3
+    );
+}
+
+add_filter('woocommerce_catalog_orderby', 'yeni_siralama_ekle');
+
+function yeni_siralama_ekle($options)
 {
 
     $options['discount'] = 'İndirime Göre Sırala';
@@ -20,24 +35,20 @@ function misha_add_custom_sorting_options($options)
 }
 
 
-add_filter('woocommerce_get_catalog_ordering_args', 'misha_custom_product_sorting');
+add_filter('woocommerce_get_catalog_ordering_args', 'siralama_ayarlari_ekle');
 
-function misha_custom_product_sorting($args)
+function siralama_ayarlari_ekle($args)
 {
-
-    // Sort alphabetically
     if (isset($_GET['orderby']) && 'discount' === $_GET['orderby']) {
         $args['orderby']  = 'meta_value_num';
         $args['order']    = 'DESC';
         $args['meta_key'] = '_discount_percent';
     }
-
     return $args;
 }
 
 
-
-/*** For debugging purposes, remove this action hook if everything works!! ***/
+// bu alan ürün düzenleme sayfasında ne kadar indirim oranı var onu göstermeye yarar
 function action_woocommerce_product_options_general_product_data()
 {
     // Text field
@@ -52,8 +63,7 @@ function action_woocommerce_product_options_general_product_data()
 }
 add_action('woocommerce_product_options_general_product_data', 'action_woocommerce_product_options_general_product_data', 10, 0);
 
-/*** From here on the code below is needed so that everything would work smoothly ***/
-// Save value
+//Ürün ekledikten veya güncelledikten sonra otamatik indirim oranı oluşturur
 function action_woocommerce_admin_process_product_object($product)
 {
     // Getters
@@ -73,18 +83,7 @@ function action_woocommerce_admin_process_product_object($product)
 }
 add_action('woocommerce_admin_process_product_object', 'action_woocommerce_admin_process_product_object', 10, 1);
 
-function my_admin_menu()
-{
-    add_menu_page(
-        __('Toplu İndirim Oranı Oluştur', 'my-textdomain'),
-        __('Toplu İndirim Oranı Oluştur', 'my-textdomain'),
-        'manage_options',
-        'sample-page',
-        'my_admin_page_contents',
-        'dashicons-schedule',
-        3
-    );
-}
+
 
 add_action('admin_menu', 'my_admin_menu');
 
@@ -99,9 +98,6 @@ function my_admin_page_contents()
     <?php
 
     if ($_POST['calistir'] == '1') {
-
-
-
         $all_ids = get_posts(array(
             'post_type' => 'product',
             'orderby' => 'meta_value_num',
@@ -160,11 +156,6 @@ function my_admin_page_contents()
 
             </div>
         </div>
-
-
-
-
-
 
 
     <?php
